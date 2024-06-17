@@ -15,11 +15,13 @@ import org.hibernate.testing.orm.junit.DomainModelScope;
 import org.hibernate.testing.orm.junit.SessionFactory;
 import org.hibernate.testing.orm.junit.SessionFactoryScope;
 import org.hibernate.testing.orm.junit.SkipForDialect;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DomainModel( annotatedClasses = {TheEntity.class, TheOtherEntity.class} )
+@DomainModel( annotatedClasses = {TheEntity.class, TheOtherEntity.class, TheGenericGeneratorIdEntity.class,
+		TheGenericGeneratorEmbeddingEntity.class, TheEmbeddingEntity.class} )
 @SessionFactory
 @SkipForDialect( dialectClass = SybaseDialect.class, matchSubTypes = true,
 		reason = "Skipped for Sybase to avoid problems with UUIDs potentially ending with a trailing 0 byte")
@@ -55,5 +57,36 @@ public class UuidGeneratorAnnotationTests {
 			session.flush();
 			assertThat( gavin.id ).isNotNull();
 		} );
+	}
+
+	@Test
+	public void genericGeneratorEmbeddedIdUseTest(SessionFactoryScope scope) {
+		scope.inTransaction( (session) -> {
+			TheGenericGeneratorEmbeddingEntity christof = new TheGenericGeneratorEmbeddingEntity("christof");
+			session.persist( christof );
+			session.flush();
+			assertThat( christof.id ).isNotNull();
+		} );
+	}
+
+	@Test
+	public void genericGeneratorUseTest(SessionFactoryScope scope) {
+		scope.inTransaction( (session) -> {
+			TheGenericGeneratorIdEntity alexander = new TheGenericGeneratorIdEntity("alexander");
+			session.persist( alexander );
+			session.flush();
+			assertThat( alexander.id ).isNotNull();
+		} );
+	}
+
+	@Disabled("@UuidGenerator not supported on @EmbeddedId")
+	@Test
+	public void embeddingUseTest(SessionFactoryScope scope) {
+		scope.inTransaction( (session) -> {
+			TheEmbeddingEntity julian = new TheEmbeddingEntity("julian");
+			session.persist( julian );
+			session.flush();
+			assertThat( julian.id ).isNotNull();
+		});
 	}
 }
